@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package mypackage;
+//import "google/protobuf/timestamp.proto";
+
+service RoucairolCarvalho {
+  rpc CriticalSection (RequestCS) returns (ResponseCS) {}
+  rpc CaniEnterNow (RequestEnter) returns (ResponseEnter) {}
+  rpc WriteToDiary (RequestWrite) returns (ResponseWrite) {}
+}
+
+message RequestCS {
+  int32 process_id = 1;
+  string process_timestamp = 2;
+}
+
+message ResponseCS {
+  string status = 1;
+}
+
+message RequestEnter {
+    int32 id = 1;
+}
+
+message ResponseEnter{
+    bool granted = 1;
+}
+
+message RequestWrite{
+    int32 id = 1;
+    string line = 2;
+}
+
+message ResponseWrite{
+    bool granted = 1;
+}
