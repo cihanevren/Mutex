@@ -9,6 +9,7 @@ service RoucairolCarvalho {
   rpc WriteToDiary (RequestWrite) returns (ResponseWrite) {}
 }
 
+
 message RequestCS {
   int32 process_id = 1;
   string process_timestamp = 2;

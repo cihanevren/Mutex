@@ -10,61 +10,55 @@ import mutex_pb2_grpc
 
 STATUS = ["RELEASED", "WANTED", "HELD"]
 
-requestList = set() #Pair of time and Processes ID
-msgList = [] #appends messages
+requestList = set() # Pair of time and Processes ID
+diary = [] # Appends messages
 
-def requestCS():
-    pass
-
-
-
-def enterCS():
-    pass
-
-
-
-def leaveCS():
-    pass
+format = "%(asctime)s: %(message)s"
+logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
 
 
 class RoucairolCarvalhoServer(mutex_pb2_grpc.RoucairolCarvalhoServicer):
 
     def CriticalSection(self, request, context):
-        reqTuple = (request.process_id, float(request.process_timestamp))
-        requestList.add(reqTuple)
-        print(request)
-        print(f"THIS IS REQUESTLIST {list(requestList)}")
+        logging.info(f"STARTING CRITICALSECTION FUNCTION")
 
-        
-        
+        # Create request tuple with request id and request timestamp
+        requestTuple = (request.process_id, float(request.process_timestamp))
+
+        # Add request tuple into request list
+        requestList.add(requestTuple)
+
+        logging.info(f"CURRENT REQUESTLIST {list(requestList)}")
+        logging.info(f"ENDING CRITICALSECTION FUNCTION")
+
         return mutex_pb2.ResponseCS(status="WANTED")
 
 
     def CaniEnterNow(self, request, context):
-        
-        
-        to_grant = min(requestList, key = lambda t: t[1])
-        #to_grant = requestList[1]
-        print("THIS IS TO GRANT NUMBER")
-        print(to_grant[0])
+        logging.info(f"STARTING CANIENTERNOW FUNCTION")
+        # Find the request with the minimum timestamp in the requestlist
+        min_timestamp_id = min(requestList, key = lambda t: t[1])[0]
 
-        if request.id == to_grant[0]:
+        logging.info(f"ENDING CANIENTERNOW FUNCTION")
+        if request.id == min_timestamp_id:
             return mutex_pb2.ResponseEnter(granted=1)
         else:
             return mutex_pb2.ResponseEnter(granted=0)
 
 
     def WriteToDiary(self, request, context):
-
+        logging.info(f"STARTING WRITETODIARY FUNCTION")
+        logging.info(f"MESSAGE FROM {request.id} IS {request.line}")
         print(request.line, request.id)
-        msgList.append(request.line)
+        diary.append(request.line)
 
+        logging.info(f"UPDATED THE DIARY WITH THE MESSAGE")
+        logging.info(f"Diary ----->>> {diary}")
         to_remove = {t for t in requestList if t[0] == request.id}
         requestList.remove(list(to_remove)[0])
-        #requestList.remove(request.id)
-        print(f"THIS IS REQUESTLIST {list(requestList)}")
-        print(f"THIS IS MSGLIST {msgList}")
 
+        
+        logging.info(f"ENDING WRITETODIARY FUNCTION")
         time.sleep(random.randint(1,7))
         return mutex_pb2.ResponseWrite(granted=1)
 
@@ -82,26 +76,3 @@ server.start()
 while True:
   print("Port is Listening...")
   time.sleep(86400)
-  #print(RoucairolCarvalhoServer.CriticalSection.request)
-
-(1, 1672420864.0)
-[(3, 1672420864.0), (1, 1672420864.0)]
-[(3, 1672420864.0), (4, 1672420864.0), (1, 1672420864.0)]
-[(3, 1672420864.0), (4, 1672420864.0)]
-[(1, 1672420864.0), (4, 1672420864.0)]
-[(1, 1672420864.0), (4, 1672420864.0)]
-
-
-
-[(1, 1672421888.0), (4, 1672421888.0), (3, 1672421888.0)]
-[(4, 1672421888.0), (3, 1672421888.0)]
-[(1, 1672421888.0), (4, 1672421888.0), (3, 1672421888.0)]
-[(4, 1672421888.0), (3, 1672421888.0)]
-[(1, 1672421888.0), (4, 1672421888.0), (3, 1672421888.0)]
-[(1, 1672421888.0), (3, 1672421888.0)]
-### ONE THING TO NOTE WE DON"T UPDATE THE TIMESTAMPS
-
-
-### ONE PROBLEM CLIENT 1 RUNS FOREVER
-
-### IT WORKS BUT WE DON"T UPDATE THE TIMES
