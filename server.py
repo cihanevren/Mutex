@@ -3,15 +3,14 @@ import logging
 import grpc
 import time
 import random
-
-# Import the generated classes
 import mutex_pb2
 import mutex_pb2_grpc
-
+import sys
 STATUS = ["RELEASED", "WANTED", "HELD"]
 
 requestList = set() # Pair of time and Processes ID
-diary = [] # Appends messages
+diary = list() # keeps record of messages
+diary_proc = list() # keeps record of procs
 
 format = "%(asctime)s: %(message)s"
 logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
@@ -48,14 +47,16 @@ class RoucairolCarvalhoServer(mutex_pb2_grpc.RoucairolCarvalhoServicer):
 
     def WriteToDiary(self, request, context):
         logging.info(f"STARTING WRITETODIARY FUNCTION")
-        logging.info(f"MESSAGE FROM {request.id} IS {request.line}")
-        print(request.line, request.id)
+        logging.info(f"MESSAGE FROM PROC {request.id} IS {request.line}")
         diary.append(request.line)
+        diary_proc.append(request.id)
 
         logging.info(f"UPDATED THE DIARY WITH THE MESSAGE")
         logging.info(f"Diary ----->>> {diary}")
         to_remove = {t for t in requestList if t[0] == request.id}
         requestList.remove(list(to_remove)[0])
+        logging.info(f"UPDATED REQUESTLIST {list(requestList)}")
+
 
         
         logging.info(f"ENDING WRITETODIARY FUNCTION")
@@ -74,5 +75,15 @@ server.start()
 
 # Keep the server running
 while True:
-  print("Port is Listening...")
-  time.sleep(86400)
+    try:
+        print("Port is Listening...")
+        time.sleep(86400)
+    except KeyboardInterrupt:
+        logging.info("<---SERVER IS INTERRUPTED FROM THE TERMINAL--->")
+        logging.info(f"Registry of Critical Section Accesses : \n {diary_proc}")
+        sys.exit()
+
+
+
+ 
+
